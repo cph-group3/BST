@@ -8,6 +8,8 @@ public class mklBST
 		private Node root;
 		private int size, rightSide, leftSide;
 
+		//todo: make rotation until tree is balanced for remove
+				//also: make removebalance *__*
 		public boolean containsKey( Object key ) {
 			return root.get(key) != null;
 		}
@@ -94,7 +96,6 @@ public class mklBST
 			while(root.left != null) {
 				minv = root.left.key;
 				root = root.left;
-				leftSide++;
 			}
 			return minv;
 		}
@@ -104,19 +105,150 @@ public class mklBST
 			while(root.right != null) {
 				maxv = root.right.key;
 				root = root.right;
-				rightSide++;
 			}
 			return maxv;
 		}
 
-		public boolean balanceTree() {
+		public int showLeftSide() {
+			if(root.left != null)
+				return countHeight(root.left, 0);
+			return 0;
 		}
 
+		public int showRightSide() {
+			if(root.right != null)
+				return countHeight(root.right, 0);
+			return 0;
+		}
 
+		private int countHeight(Node root, int level) {
+			if(root.left != null && root.right == null) {
+				level += 1;
+				int number = countHeight(root.left, level);
+				return Math.max(number, level);
+			}
+			else if(root.right != null && root.left == null) {
+				level += 1;
+				int number = countHeight(root.right, level);
+				return Math.max(number, level);
+			} else if(root.right != null && root.left != null) {
+				level += 1;
+				int numberLeft = countHeight(root.left, level);
+				int numberRight = countHeight(root.right, level);
+				int maxCur = Math.max(numberLeft, numberRight);
+				return Math.max(maxCur, level);
+			} else
+				return level+1;
+		}
+
+		//only left or right rotation
+		public void balance() {
+			//always overwrites first node
+			this.root = balanceLeftOrRightRotation(root);
+		}
+
+		private Node balanceLeftOrRightRotation(Node root) {
+			//left rotation
+			int diff = showLeftSide() - showRightSide();
+			if(diff < -1) {
+				//leftside
+				return leftSideRotation(root);
+			}
+			if(diff > 1) {
+				//rightside
+				return rightSideRotation(root);
+			}
+			return null;
+		}
+
+		private Node rightSideRotation(Node root) {
+			Node tmp = root;
+			Node newRoot = root.left;
+			tmp.left = null;
+			newRoot.right = tmp;
+			return newRoot;
+		}
+
+		private Node leftSideRotation(Node root) {
+			Node tmp = root;
+			Node newRoot = root.right;
+			tmp.right = null;
+			newRoot.left = tmp;
+			return newRoot;
+		}
+
+		private Node leftRightRotation(Node root) {
+			Node currentHead = root.left.right; //d
+			Node leftRightValue = root.left; //c
+			leftRightValue.right = null; //set c's right to null
+			currentHead.left = leftRightValue; //alligned
+			//copies rightsideRotation
+			root.left = null;
+			currentHead.right = root;
+			return currentHead;
+			//set  a to main root and remove main root to the left
+		}
+
+		public void fixRightLeftRotation() {
+			this.root = rightLeftRotation(root);
+		}
+
+		public void fixLeftRightRotation() {
+			this.root = leftRightRotation(root);
+		}
+
+		private Node rightLeftRotation(Node root) {
+			Node currentHead = root.right.left;
+			Node rightValue = root.right;
+			root.right = currentHead;
+			currentHead.right = rightValue;
+			rightValue.left = null; //created left rotation
+			//make left rotation
+			root.right = null;
+			currentHead.left = root;
+			return currentHead;
+
+		}
+
+		public void balanceTree() {
+			int eval = showLeftSide() - showRightSide();
+			if(eval < - 1) {
+				if(eval < -1 && root.right != null && root.right.left != null) {
+					fixRightLeftRotation();
+				} else
+					this.root = leftSideRotation(root);
+			}
+			if(eval > 1) {
+				if(eval > 1 && root.left != null && root.left.right != null) {
+					fixLeftRightRotation();
+				} else
+					this.root = rightSideRotation(root);
+			}
+		}
+
+		public boolean isTreeEven() {
+			return (showLeftSide() - showRightSide() <= 1 && showLeftSide()-showRightSide() >= -1);
+		}
+
+		public void helpTreeNode() {
+			showTreeNode(root, 0);
+		}
+
+		public void showTreeNode(Node root, int level) {
+			if(root == null)
+				return;
+			level++;
+			System.out.println("level is: " + level + "\troot is:" + root.key);
+			showTreeNode(root.left, level);
+			//keyList.add(root.key);
+			showTreeNode(root.right, level);
+		}
 
 		@Override
 		public String toString() {
 			return "string: " + root.key +"\nvalue: " + root.value;
 		}
+
+
 
 }
